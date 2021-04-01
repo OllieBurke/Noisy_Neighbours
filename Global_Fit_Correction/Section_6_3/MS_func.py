@@ -11,6 +11,34 @@ def units():
 
     return GM_sun, c, M_sun, G, Mpc, pi
 
+def PowerSpectralDensity(f):
+    
+    """
+    From https://arxiv.org/pdf/1803.01944.pdf. This version of the PSD includes
+    the sky-averaging position 'penalty', which takes into account the fact that, for some
+    LISA sources, the wavelength of the GWs is shorter than LISA's arms.
+    
+    """
+
+    L = 2.5*10**9   # Length of LISA arm
+    f0 = 19.09*10**-3    
+    
+    Poms = ((1.5*10**-11)**2)*(1 + ((2*10**-3)/f)**4)  # Optical Metrology Sensor
+    Pacc = (3*10**-15)**2*(1 + (4*10**-3/(10*f))**2)*(1 + (f/(8*10**-3))**4)  # Acceleration Noise
+    Sc = 9*10**(-45)*f**(-7/3)*np.exp(-f**0.171 + 292*f*np.sin(1020*f)) * (1 \
+                                            + np.tanh(1680*(0.00215 - f)))   # Confusion noise
+    alpha = 0.171
+    beta = 292
+    k =1020
+    gamma = 1680
+    f_k = 0.00215 
+    PSD = ((10/(3*L*L))*(Poms + (4*Pacc)/(np.power(2*np.pi*f,4)))*(1 + 0.6*(f/f0)*(f/f0)) + Sc) # PSD
+        
+    where_are_NaNs = np.isnan(PSD) #In case there are nans,
+    PSD[where_are_NaNs] = 1e100    #set the PSD value for them to something very high and let's be done with it.
+    
+    return PSD
+    
 
 def htilde_GR(f,eps,params):
     
